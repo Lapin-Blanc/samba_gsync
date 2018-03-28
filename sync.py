@@ -10,12 +10,13 @@ from apiclient import discovery
 from ggl.credentials import get_credentials
 
 log_dir = "/var/log/samba_sync"
+working_dir = os.path.dirname(os.path.realpath(__file__))
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 logging.basicConfig(filename=os.path.join(log_dir,'sync.log'),level=logging.DEBUG)
 
-config = json.load(open('config.json'))
+config = json.load(open(os.path.join(working_dir, 'config.json')))
 DOMAIN = config['domain']
 
 BUILD_DICT = {
