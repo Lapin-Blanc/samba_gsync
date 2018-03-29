@@ -4,6 +4,7 @@ import sys
 import logging
 import httplib2
 import json
+import re
 from ldif3 import LDIFParser
 
 from apiclient import discovery
@@ -14,7 +15,7 @@ working_dir = os.path.dirname(os.path.realpath(__file__))
 
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
-logging.basicConfig(filename=os.path.join(log_dir,'sync.log'),level=logging.DEBUG)
+logging.basicConfig(filename=os.path.join(log_dir,'sync.log'),level=logging.WARNING)
 
 config = json.load(open(os.path.join(working_dir, 'config.json')))
 DOMAIN = config['domain']
@@ -61,20 +62,26 @@ data_dict = datas[1]
 
 account_name = data_dict.get("sAMAccountName", False)
 if (account_name):
-    primaryEmail = account_name[0] + "@" + DOMAIN
+    account_name = account_name[0]
+    primaryEmail = account_name + "@" + DOMAIN
     # if no givenName, we use account_name
-    givenName = data_dict.get('givenName', account_name[0])
+    givenName = data_dict.get('givenName', account_name)
     # if no familyName, we use account_name
-    familyName = data_dict.get('sn', account_name[0])
+    familyName = data_dict.get('sn', account_name)
 
 passwd = data_dict.get("virtualCryptSHA512", False)
 if (passwd):
-    match = re.match("^\{CRYPT\}(.*)$", passwd[0])
+    passwd = passwd[0]
+    match = re.match("^\{CRYPT\}(.*)$", passwd)
     passwd = match.group(1)
 
 deleted = data_dict.get("isDeleted", False)
 if deleted:
     deleted = data_dict.get("isDeleted")[0] == 'TRUE'
+
+logging.info("ACCOUNT : {}".format(account_name))
+logging.info("PASSWORD : {}".format(passwd))
+logging.info("DELETED : {}".format(deleted))
 
 # real user, either with password or planned for deletion
 if ( account_name and (passwd or deleted) ):
