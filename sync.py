@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import os
 import sys
-import re
 import logging
 import httplib2
 import json
+from ldif3 import LDIFParser
 
 from apiclient import discovery
 from ggl.credentials import get_credentials
@@ -55,54 +55,26 @@ g_users = [u['primaryEmail'] for u in users]
 logging.info("Google user list retrieved {}".format(g_users))
 
 # Parsing stdin as ldif
-data = []
-for line in sys.stdin.readlines():
-    match = re.match( '^ (.*\n)', line )
-    # Check if line begins with a space, join with last line
-    if match:
-    # Found line beginning with space, joining with last line"
-        # Pop last line and remove line return
-        lastline = re.sub( '(.*)\n', '\\1', data.pop() )
-        # Join result with current line without space
-        newline = lastline + match.group(1)
-        data.append( newline )
-    # Normal line
-    else:
-        data.append( line )
+parsed = LDIFParser(sys.stdin).parse()
+datas = parsed.next()
+data_dict = datas[1]
 
-# Looping through all lines and detect DN and attributes
-# building a dict with diff's attibutes and values
-data_dict = {}
-for line in data:
-    # Test if we have a typical LDIF line "xxx: yyy"
-    match = re.match( '^(.*?): (.*)\n', line )
-    if match:
-        # If xxx is a dn
-        if match.group(1) == "dn":
-            logging.info("DN found: {}".format( match.group(2) ))
-        # If xxx is an attribute meaning no changetype or add or replace or delete
-        elif not re.match( 'version|changetype|add|replace|delete', match.group(1) ):
-            k = match.group(1)
-            val = match.group(2)
-            logging.info("Attribute found: {} = {}".format( k, val ))
-            data_dict[k] = val
-
-account_name = data_dict.get("sAMAccountName", None)
+account_name = data_dict.get("sAMAccountName", False)
 if (account_name):
-    primaryEmail = account_name + "@" + DOMAIN
+    primaryEmail = account_name[0] + "@" + DOMAIN
     # if no givenName, we use account_name
-    givenName = data_dict.get('givenName', account_name)
+    givenName = data_dict.get('givenName', account_name[0])
     # if no familyName, we use account_name
-    familyName = data_dict.get('sn', account_name)
+    familyName = data_dict.get('sn', account_name[0])
 
 passwd = data_dict.get("virtualCryptSHA512", False)
 if (passwd):
-    match = re.match("^\{CRYPT\}(.*)$", passwd)
+    match = re.match("^\{CRYPT\}(.*)$", passwd[0])
     passwd = match.group(1)
 
 deleted = data_dict.get("isDeleted", False)
 if deleted:
-    deleted = data_dict.get("isDeleted") == 'TRUE'
+    deleted = data_dict.get("isDeleted")[0] == 'TRUE'
 
 # real user, either with password or planned for deletion
 if ( account_name and (passwd or deleted) ):
