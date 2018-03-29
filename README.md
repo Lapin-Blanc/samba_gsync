@@ -4,7 +4,6 @@ Simple one way password synchronization from samba 4 (>=4.7) to G Suite
 # installation & run
 I've tested this with a fresh debian 9 install and Samba 4.8.0 built from sources and configured
 as explained there https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller
-You'll also need ldif3 : `python -m install ldif3`
 
 1. Go to /usr/local/ and clone this repo, cd to the repo
 2. Write a config.json file with :
@@ -16,9 +15,10 @@ You'll also need ldif3 : `python -m install ldif3`
 3. Go to your G Suite console, start or use an existing project, create credentials and get the OAuth 2.0 
 'client_secret_XXX.json' file and rename it to 'client_secret.json'
 4. Put this file in the 'ggl' dir
-5. Get Google API client :
+5. Get Google API client and ldif3:
 ```bash
 pip install --upgrade google-api-python-client
+pip install ldif3
 ```
 6. First, launch `./initialize_credentials.py`
 7. Add `password hash userPassword schemes = CryptSHA512` to smb.conf
