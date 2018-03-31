@@ -1,0 +1,4 @@
+{
+	"domain" : "example.com",
+	"protected_accounts" : [ "administrator", "super.user"]
+}
