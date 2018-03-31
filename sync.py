@@ -53,7 +53,9 @@ logging.info("Google service instanciated")
 users = service.users().list(customer="my_customer").execute()['users']
 # List of existing users (emails)
 g_users = [u['primaryEmail'] for u in users]
-logging.info("Google user list retrieved {}".format(g_users))
+logging.info("Google accounts list retrieved {}".format(g_users))
+protected_accounts = [acc+"@"+DOMAIN for acc in config['protected_accounts']]
+logging.info("Protected accounts list : {}".format(g_users))
 
 # Parsing stdin as ldif
 parsed = LDIFParser(sys.stdin).parse()
@@ -85,8 +87,8 @@ logging.info("DELETED : {}".format(deleted))
 
 # real user, either with password or planned for deletion
 if ( account_name and (passwd or deleted) ):
-	# user to delete exists in the google domain
-    if ( deleted and (primaryEmail in g_users) ):
+	# user to delete exists in the google domain and are not protected
+    if ( deleted and (primaryEmail in g_users) and not (primaryEmail in protected_accounts)):
         logging.info("User {} is about to be deleted...".format(primaryEmail))
         results = service.users().delete( userKey=primaryEmail ).execute()
         logging.info(results)
