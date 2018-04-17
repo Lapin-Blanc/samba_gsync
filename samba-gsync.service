@@ -1,0 +1,13 @@
+[Unit]
+Description=Samba G Suite password synchronization
+Wants=samba-ad-dc.service
+After=samba-ad-dc.service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/samba_gsync/start_syncing.sh
+ExecStop=/usr/local/samba_gsync/stop_syncing.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

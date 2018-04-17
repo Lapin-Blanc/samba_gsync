@@ -22,7 +22,7 @@ try:
 
 	if not os.path.exists(log_dir):
 		os.makedirs(log_dir)
-	logging.basicConfig(filename=os.path.join(log_dir,'sync.log'),level=logging.WARNING)
+	logging.basicConfig(filename=os.path.join(log_dir,'sync.log'),level=logging.INFO)
 
 	config = json.load(open(os.path.join(working_dir, 'config.json')))
 	DOMAIN = config['domain']
